@@ -1,0 +1,28 @@
+{
+  "name": "panteon_leader_1",
+  "version": "1.0.0",
+  "description": "Leaderboard",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "heroku:postbuild": "npm install --only=production"
+  },
+  "keywords": [
+    "leaderboard"
+  ],
+  "author": "Sezer Bölük",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "bcrypt": "^5.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.3.1",
+    "morgan": "^1.10.0",
+    "nodemon": "^2.0.15",
+    "redis": "^4.0.6"
+  }
+}
