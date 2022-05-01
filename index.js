@@ -48,9 +48,9 @@ app.use('/api/pools',poolRouter);
  * listen to port
  */
 
-const POST = process.env.PORT || 5000
+const PORT = process.env.PORT || 5000
 
-app.listen(3333,() => {
+app.listen(PORT,() => {
   console.log('Server started on port 3333');
 })
 
