@@ -7,7 +7,7 @@ const bcrypt = require('bcrypt');
 // const jwt = require('jsonwebtoken');
 
 const redis = require('redis');
-const client = redis.createCglient({
+const client = redis.createClient({
   url:'redis://:p682f993883cac7947f0e98fc24bf69d4a884207596b5571b721dfc88a25b9ea9@ec2-34-192-109-79.compute-1.amazonaws.com:31279'
 });
 
