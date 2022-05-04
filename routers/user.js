@@ -98,7 +98,7 @@ router.post('/daily-earning',   async (req, res) => {
   users.forEach(async (element,item) => {
 
     if(item == 300) {
-      res.send({ success: 1 });
+     return res.send({ success: 1 });
     }
     let daily_earnings = 0;
 
