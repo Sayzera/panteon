@@ -23,7 +23,7 @@ let value = '';
   await client.connect();
 })();
 
-router.get('/list-redis', async (req, res) => {
+router.post('/list-redis', async (req, res) => {
   userListRedis();
 
   res.status(200).send({ success: 1 });
@@ -48,11 +48,11 @@ async function userListRedis() {
   await client.set('users', JSON.stringify(users));
 }
 
-router.get('/list', async (req, res) => {
+router.post('/list', async (req, res) => {
   res.send({ users: JSON.parse(await client.get('users')) });
 });
 
-router.get('/user-generator/:count?', async (req, res) => {
+router.post('/user-generator/:count?', async (req, res) => {
   let users = await getRandomUserApi(req.params.count ?? 100);
 
   users.results.forEach(async (element) => {
@@ -156,7 +156,7 @@ async function DailyEarningAdd(userId, money) {
   await dailyEarning.save();
 }
 
-router.get('/user-detail/:id', async (req, res) => {
+router.post('/user-detail/:id', async (req, res) => {
   try {
     let user = await User.findById({ _id: req.params.id });
     if (!user) {
