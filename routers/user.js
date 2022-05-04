@@ -95,7 +95,11 @@ router.post('/daily-earning',   async (req, res) => {
   let count = 0;
   let total_earnings = 0;
 
-  users.forEach(async (element) => {
+  users.forEach(async (element,item) => {
+
+    if(item == 300) {
+      res.send({ success: 1 });
+    }
     let daily_earnings = 0;
 
     let rnd = Math.floor(Math.random() * (3 - 1)) + 1;
