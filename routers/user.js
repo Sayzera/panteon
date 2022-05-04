@@ -29,6 +29,7 @@ router.post('/list-redis', async (req, res) => {
   res.status(200).send({ success: 1 });
 });
 
+
 async function userListRedis() {
   let users = [];
   for await (const doc of User.find().sort({ money: -1 }).limit(5000)) {
@@ -51,6 +52,7 @@ async function userListRedis() {
 router.post('/list', async (req, res) => {
   res.send({ users: JSON.parse(await client.get('users')) });
 });
+
 
 router.post('/user-generator/:count?', async (req, res) => {
   let users = await getRandomUserApi(req.params.count ?? 100);
@@ -90,6 +92,7 @@ router.post('/user-generator/:count?', async (req, res) => {
   res.status(200).send({ success: 1 });
 });
 
+
 router.post('/daily-earning',   async (req, res) => {
   let users = await User.find();
   let count = 0;
@@ -97,9 +100,7 @@ router.post('/daily-earning',   async (req, res) => {
 
   users.forEach(async (element,item) => {
 
-    if(item == 300) {
-     return res.send({ success: 1 });
-    }
+   
     let daily_earnings = 0;
 
     let rnd = Math.floor(Math.random() * (3 - 1)) + 1;
@@ -111,7 +112,7 @@ router.post('/daily-earning',   async (req, res) => {
       daily_earnings = Math.floor(Math.random() * 100) * -1;
     }
   
-    await DailyEarningAdd(element._id, daily_earnings);
+    DailyEarningAdd(element._id, daily_earnings);
 
     let user = await User.findByIdAndUpdate(element._id, {
       $inc: { money: daily_earnings },
@@ -123,6 +124,7 @@ router.post('/daily-earning',   async (req, res) => {
      
       userListRedis();
       let pool_add = (total_earnings * 2) / 100;
+      // günlük kazançların toplamının %2'ye bölümünden kalanını alıyoruz.
       BankAccount(pool_add,total_earnings);
 
       res.send({ success: 1 });
@@ -150,6 +152,7 @@ async function BankAccount(poolPrice,total) {
 
 }
 
+
 async function DailyEarningAdd(userId, money) {
   let dailyEarning = new DailyEarning({
     user: userId,
@@ -160,6 +163,7 @@ async function DailyEarningAdd(userId, money) {
   await dailyEarning.save();
 }
 
+
 router.post('/user-detail/:id', async (req, res) => {
   try {
     let user = await User.findById({ _id: req.params.id });
@@ -167,6 +171,7 @@ router.post('/user-detail/:id', async (req, res) => {
       return res.send({ error: 'User not found', success: 0 });
     }
 
+    // son 5 günlük gelir
     let userDailyDetails = await userDailyAmount(user._id);
 
     return res.send({
@@ -178,8 +183,6 @@ router.post('/user-detail/:id', async (req, res) => {
     return res.send({ error: 'User not found', success: 0 });
   }
 });
-
-
 
 
 
