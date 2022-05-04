@@ -7,9 +7,7 @@ const path = require('path')
 
 app.use(express.static(path.join(__dirname +  '/public')))
 
-app.get('*', (req,res) => {
-  return res.sendFile(path.join(__dirname + '/public', 'index.html'))
-})
+
 
 /**
  * Authentication
@@ -60,6 +58,10 @@ app.use('/api/users',userRouter);
 app.use('/api/pools',poolRouter);
 app.use('/api/auth', authRouter);
 
+
+app.get('*', (req,res) => {
+  return res.sendFile(path.join(__dirname + '/public', 'index.html'))
+})
 
 
 /**
