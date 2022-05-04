@@ -13,3 +13,21 @@
 
 
  \/api\/users\/((?!daily-earning)|(?!sezer).)*$
+
+
+
+
+ git clone <my git project>
+heroku create <app name>
+
+#remove package.json
+mv package.json tmp_package.json
+git add package.json
+git commit -m "removed package.json"
+
+#re-add package.json
+mv tmp_package.json package.json
+git add package.json
+git commit -m "re-added package.json"
+
+git push heroku master

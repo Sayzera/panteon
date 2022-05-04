@@ -1,11 +1,11 @@
 {
-  "name": "panteon_leader_3",
-  "version": "2.2.0",
+  "name": "panteon_leader_1",
+  "version": "1.0.0",
   "description": "Leaderboard",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
+    "start": "nodemon index.js",
     "heroku:postbuild": "npm install --only=production"
   },
   "keywords": [
