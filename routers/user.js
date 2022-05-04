@@ -1,15 +1,20 @@
 const { User } = require('../models/users');
+const { Pool } = require('../models/pool');
 const DailyEarning = require('../models/daliy_earning');
 const express = require('express');
 const { default: axios } = require('axios');
 const router = express.Router();
-const bcrypt = require('bcrypt');
-// const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const redis = require('redis');
-const client = redis.createClient({
-  url:'redis://:p682f993883cac7947f0e98fc24bf69d4a884207596b5571b721dfc88a25b9ea9@ec2-34-192-109-79.compute-1.amazonaws.com:31279'
-});
+const { findByIdAndUpdate } = require('../models/daliy_earning');
+
+const client = redis.createClient(
+{
+  url:'redis://:pc925be956953cd4e17a5f383aa5f828dac79c04db1bfefff8691d7d18866d5fc@ec2-54-163-171-22.compute-1.amazonaws.com:19539'
+}
+);
 
 let value = '';
 
@@ -19,7 +24,6 @@ let value = '';
 })();
 
 router.get('/list-redis', async (req, res) => {
- 
   userListRedis();
 
   res.status(200).send({ success: 1 });
@@ -74,7 +78,7 @@ router.get('/user-generator/:count?', async (req, res) => {
       city: element.location.city,
       score,
       gender: element.gender,
-      age: element.dob.age
+      age: element.dob.age,
     });
     user = await user.save();
 
@@ -86,87 +90,107 @@ router.get('/user-generator/:count?', async (req, res) => {
   res.status(200).send({ success: 1 });
 });
 
-router.post('/daily-earning', async (req, res) => {
+router.post('/daily-earning',   async (req, res) => {
   let users = await User.find();
   let count = 0;
+  let total_earnings = 0;
 
   users.forEach(async (element) => {
-    let rnd = Math.floor(Math.random() * (3-1)) +1;
-    let  daily_earnings = 0;
-    let total_earnings = 0;
-    if(rnd == 1) {
-      daily_earnings = Math.floor(Math.random() * 100 );
+    let daily_earnings = 0;
+
+    let rnd = Math.floor(Math.random() * (3 - 1)) + 1;
+
+    if (rnd == 1) {
+      daily_earnings = Math.floor(Math.random() * 100);
       total_earnings += daily_earnings;
-
     } else {
-      daily_earnings = Math.floor(Math.random() * 100 ) * -1;
+      daily_earnings = Math.floor(Math.random() * 100) * -1;
     }
-
+  
     await DailyEarningAdd(element._id, daily_earnings);
 
     let user = await User.findByIdAndUpdate(element._id, {
-      $inc: { money: daily_earnings  },
+      $inc: { money: daily_earnings },
       daily_earnings: daily_earnings,
     });
 
     count++;
-    if (count == users.length) { 
+    if (count == users.length) {
+     
       userListRedis();
+      let pool_add = (total_earnings * 2) / 100;
+      BankAccount(pool_add,total_earnings);
+
       res.send({ success: 1 });
     }
-
   });
 
-  // let pool_add = (total_earnings * 2) % 100;
+
+
 
 });
 
-async function DailyEarningAdd(userId,money) { 
+async function BankAccount(poolPrice,total) {
+  let pool = await  Pool.findOneAndUpdate(
+  {},
+  {
+    $inc : {
+      subTotal: poolPrice,
+      total: total,
+    }
+  },
+  {new: true}
+  )
+
+  await pool.save();
+
+}
+
+async function DailyEarningAdd(userId, money) {
   let dailyEarning = new DailyEarning({
     user: userId,
     amount: money,
-    date : new Date()
+    date: new Date(),
   });
 
-   await dailyEarning.save();
-
- 
+  await dailyEarning.save();
 }
 
-
-router.get('/user-detail/:id',async (req,res) => {
-
+router.get('/user-detail/:id', async (req, res) => {
   try {
-    let user = await User.findById({'_id':req.params.id});
-    if(!user) {
-      return res.send({ error: 'User not found',success:0 });
+    let user = await User.findById({ _id: req.params.id });
+    if (!user) {
+      return res.send({ error: 'User not found', success: 0 });
     }
 
     let userDailyDetails = await userDailyAmount(user._id);
 
-
-     return  res.send({user: user, success: 1, userDailyDetails: userDailyDetails});
+    return res.send({
+      user: user,
+      success: 1,
+      userDailyDetails: userDailyDetails,
+    });
   } catch (error) {
-      return res.send({ error: 'User not found', success: 0});
+    return res.send({ error: 'User not found', success: 0 });
   }
-})
+});
+
+
 
 
 
 
 async function userDailyAmount(userId) {
-    let detail = await DailyEarning.find({'user':userId})
-    .sort({'date':-1})
+  let detail = await DailyEarning.find({ user: userId })
+    .sort({ date: -1 })
     .limit(5)
-    .select('amount date')
-  
-    if(!detail) {
-        return null
-    } 
-    return detail;
+    .select('amount date');
+
+  if (!detail) {
+    return null;
+  }
+  return detail;
 }
-
-
 
 async function getRandomUserApi(count) {
   let response = await axios.get('https://randomuser.me/api/?results=' + count);
@@ -174,5 +198,33 @@ async function getRandomUserApi(count) {
 
   return users;
 }
+
+// login
+router.post('/login', async (req, res) => {
+  let { username, password } = req.body;
+  let user = await User.findOne({ username }); // -hashPassword cevap içinde getirme
+
+  // username ile eşleşen bir user yoksa
+  if (!user) {
+    return res.send({ message: 'User not found', success: 0 });
+  }
+
+  // password doğru değilse
+  if (user && !bcrypt.compareSync(password, user.hashPassword)) {
+    return res.send({ message: 'Password incorrect', success: 0 });
+  }
+  // login başarılı ise token oluşturup gönder
+  const token = jwt.sign(
+    {
+      userId: user.id,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: '1d', // 1 gün geçerli
+    }
+  );
+
+  return res.send({ token, success: 1, user: user });
+});
 
 module.exports = router;

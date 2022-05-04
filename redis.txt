@@ -6,3 +6,10 @@
  
 
  https://protected-refuge-68834.herokuapp.com/
+
+
+ sudo lsof -i :5000
+ kill -9 <POD>
+
+
+ \/api\/users\/((?!daily-earning)|(?!sezer).)*$
